@@ -1,0 +1,644 @@
+<!doctype html><html><head><meta charset=utf8><meta name=viewport content="width=device-width,initial-scale=1,viewport-fit=cover"><style>:root{color-scheme:light;box-sizing:border-box;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}html{scroll-padding-top:env(safe-area-inset-top,0px)}body{margin:0;padding:0;font:14px -apple-system,BlinkMacSystemFont,sans-serif;background:#fff;color:#000}img{max-width:100%}[hidden]:not([hidden=until-found i]){display:none!important}</style></head><body>
+<title>43 Skud over Borris</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Big+Shoulders+Stencil+Display:wght@700;900&family=Inter:wght@400;500;600;700&family=IBM+Plex+Mono:wght@500;600;700&family=Courier+Prime:wght@400;700&display=swap">
+<style>
+/* Layout: én skærm. Canvas = nattehimlen over Borris Hede. HUD øverst, nyhedsticker nederst. Slutskærm = maskinskrevet redegørelse på sand-papir. Palette fra brandguiden. */
+:root{
+  --night:#080D15;         /* Nattebå: baggrund, himmel */
+  --shade:#152335;         /* Skygeblå: sekundær baggrund */
+  --hud:#A8EF77;           /* Radargrøn: primær fokus */
+  --hud-dim:#6E9A55;
+  --sand:#F1E8D0;          /* Sand: tekst */
+  --signal:#E35C53;        /* Alarm rød */
+  --muted:#8C98A8;
+  --paper:#F1E8D0;
+  --ink:#1b1915;
+  --ink-red:#C2392F;
+  --display:"Big Shoulders Stencil Display","Impact","Arial Narrow Bold",sans-serif;
+  --body:"Inter",system-ui,-apple-system,"Segoe UI",sans-serif;
+  --ui:"IBM Plex Mono",ui-monospace,"SFMono-Regular",Menlo,monospace;
+  --type:"Courier Prime","Courier New",ui-monospace,monospace;
+  color-scheme:dark;
+}
+html,body{height:100%;}
+body{background:var(--night);color:var(--hud);font-family:var(--body);overflow:hidden;-webkit-user-select:none;user-select:none;-webkit-tap-highlight-color:transparent;}
+#app{position:relative;height:100%;width:100%;overflow:hidden;}
+canvas{display:block;width:100%;height:100%;touch-action:none;cursor:crosshair;}
+
+/* HUD */
+.hud{position:absolute;top:0;left:0;right:0;display:flex;justify-content:space-between;align-items:flex-start;gap:12px;
+  padding:calc(10px + env(safe-area-inset-top,0px)) max(14px, env(safe-area-inset-right,0px)) 0 max(14px, env(safe-area-inset-left,0px));
+  pointer-events:none;font-family:var(--ui);font-size:12px;letter-spacing:.04em;text-shadow:0 0 6px rgba(168,239,119,.3);}
+.hud .col{display:flex;flex-direction:column;gap:3px;min-width:0;}
+.hud .right{align-items:flex-end;text-align:right;}
+.hud .big{font-family:var(--display);font-weight:900;font-size:32px;line-height:.95;letter-spacing:.02em;font-variant-numeric:tabular-nums;}
+.hud .lbl{color:var(--hud-dim);font-size:10px;text-transform:uppercase;letter-spacing:.16em;}
+.hud .official{color:var(--muted);}
+.hud .official b{color:var(--hud);font-weight:700;}
+.ammo{display:flex;flex-wrap:wrap;gap:2px;max-width:150px;justify-content:flex-end;margin-top:2px;}
+.ammo i{width:3px;height:9px;background:var(--hud);border-radius:1px;box-shadow:0 0 4px rgba(168,239,119,.5);}
+.ammo i.used{background:var(--shade);box-shadow:none;}
+
+.mute{position:absolute;right:max(12px, env(safe-area-inset-right,0px));bottom:calc(48px + env(safe-area-inset-bottom,0px));
+  pointer-events:auto;background:rgba(8,13,21,.7);color:var(--muted);border:1px solid var(--shade);border-radius:4px;font:600 11px var(--ui);letter-spacing:.12em;text-transform:uppercase;padding:6px 10px;}
+.mute:focus-visible,button:focus-visible{outline:2px solid var(--hud);outline-offset:2px;}
+
+/* Ticker */
+.ticker{position:absolute;left:0;right:0;bottom:0;background:var(--shade);border-top:1px solid #22344b;
+  padding:9px max(14px, env(safe-area-inset-right,0px)) calc(9px + env(safe-area-inset-bottom,0px)) max(14px, env(safe-area-inset-left,0px));
+  display:flex;gap:10px;align-items:center;pointer-events:none;min-height:20px;}
+.ticker .tag{flex:none;background:var(--signal);color:var(--sand);font:700 10px var(--ui);letter-spacing:.16em;padding:3px 6px;text-transform:uppercase;}
+.ticker .msg{font:500 14px var(--body);color:var(--sand);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;min-width:0;}
+
+/* Nabo-beskeder */
+.bubbles{position:absolute;left:max(12px, env(safe-area-inset-left,0px));bottom:calc(52px + env(safe-area-inset-bottom,0px));display:flex;flex-direction:column;gap:6px;pointer-events:none;max-width:min(270px,70vw);}
+.bubble{background:#0084ff;color:#fff;font:500 14px/1.3 var(--body);padding:7px 11px;border-radius:16px 16px 16px 4px;animation:pop .3s ease-out;box-shadow:0 2px 10px rgba(0,0,0,.4);}
+.bubble small{display:block;font-size:11px;opacity:.75;margin-bottom:1px;}
+@keyframes pop{from{transform:translateY(8px) scale(.95);opacity:0}to{transform:none;opacity:1}}
+
+/* Overlays */
+.overlay{position:absolute;inset:0;display:flex;align-items:center;justify-content:center;overflow-y:auto;
+  padding:calc(20px + env(safe-area-inset-top,0px)) max(16px, env(safe-area-inset-right,0px)) calc(20px + env(safe-area-inset-bottom,0px)) max(16px, env(safe-area-inset-left,0px));
+  background:linear-gradient(180deg, rgba(8,13,21,.82) 0%, rgba(8,13,21,.55) 55%, rgba(8,13,21,.2) 100%);}
+.start{max-width:420px;width:100%;display:flex;flex-direction:column;gap:18px;margin:auto;}
+.eyebrow{font:600 10px var(--ui);color:var(--sand);opacity:.8;letter-spacing:.2em;text-transform:uppercase;}
+
+/* Logo: 43 med et skud igennem */
+.logo{margin:0;line-height:.84;font-family:var(--display);font-weight:900;text-transform:uppercase;}
+.logo .num{position:relative;display:inline-block;font-size:clamp(96px,32vw,150px);color:var(--hud);letter-spacing:-.01em;text-shadow:0 0 24px rgba(168,239,119,.22);}
+.logo .cut{position:absolute;left:-4%;right:-4%;top:47%;height:.06em;background:var(--night);transform:rotate(-7deg);transform-origin:left center;}
+.logo .shot{position:absolute;left:-6%;top:47%;width:128%;height:.035em;transform:rotate(-7deg);transform-origin:left center;
+  background:linear-gradient(90deg, rgba(241,232,208,0) 0%, rgba(241,232,208,.35) 45%, #F7E7B0 88%, #fff 100%);
+  box-shadow:0 0 10px rgba(255,214,140,.7);border-radius:2px;animation:fire .55s cubic-bezier(.2,.7,.2,1) both .25s;}
+.logo .shot::after{content:"";position:absolute;right:-2px;top:50%;width:.12em;height:.12em;transform:translate(0,-50%);border-radius:50%;
+  background:radial-gradient(circle,#fff 0 30%,rgba(255,214,140,.8) 45%,rgba(255,214,140,0) 70%);}
+.logo .skud{display:block;font-size:clamp(70px,23vw,108px);color:var(--hud);margin-top:-.04em;text-shadow:0 0 24px rgba(168,239,119,.18);}
+.logo .over{display:block;font-size:clamp(38px,12.4vw,58px);color:var(--sand);letter-spacing:.01em;margin-top:.04em;}
+@keyframes fire{from{clip-path:inset(0 100% 0 0)}to{clip-path:inset(0 0 0 0)}}
+.tagline{font:700 12px var(--ui);color:var(--hud);letter-spacing:.32em;text-transform:uppercase;margin:0;}
+.brief{font:400 16px/1.5 var(--body);color:var(--sand);margin:0;}
+
+.menu{display:flex;flex-direction:column;gap:2px;margin:0;padding:0;list-style:none;}
+.menu button{appearance:none;background:none;border:0;color:var(--sand);font:600 14px var(--ui);letter-spacing:.14em;text-transform:uppercase;text-align:left;padding:9px 0 9px 22px;cursor:pointer;position:relative;width:100%;}
+.menu button::before{content:"";position:absolute;left:2px;top:50%;border:6px solid transparent;border-left:9px solid var(--hud);transform:translateY(-50%);opacity:0;}
+.menu button.primary{color:var(--hud);}
+.menu button.primary::before,.menu button:hover::before,.menu button:focus-visible::before,.menu button[aria-expanded="true"]::before{opacity:1;}
+.menu button[aria-expanded="true"]{color:var(--hud);}
+.panel{background:rgba(21,35,53,.85);border:1px solid #22344b;border-radius:4px;padding:12px 14px;margin:4px 0 8px;font:400 14px/1.5 var(--body);color:var(--sand);}
+.panel p{margin:0 0 8px;} .panel p:last-child{margin:0;}
+.legend{display:grid;gap:8px;margin:0 0 10px;padding:0;list-style:none;}
+.legend li{display:grid;grid-template-columns:44px 1fr auto;gap:10px;align-items:center;font:500 14px var(--body);color:var(--sand);}
+.legend canvas{width:44px;height:28px;border-radius:2px;}
+.legend .pts{font:700 13px var(--ui);font-variant-numeric:tabular-nums;}
+.legend .pos{color:var(--hud);} .legend .neg{color:var(--signal);}
+.panel .tip{color:var(--muted);font-size:13px;}
+.btn{appearance:none;border:0;background:var(--hud);color:var(--night);font:900 24px var(--display);letter-spacing:.08em;text-transform:uppercase;padding:13px 18px;border-radius:3px;cursor:pointer;box-shadow:0 0 22px rgba(168,239,119,.22);}
+.btn:active{transform:translateY(1px);}
+.btn.ghost{background:transparent;color:var(--ink);border:2px solid var(--ink);box-shadow:none;font-size:20px;padding:10px 14px;}
+.hs{font:500 12px var(--ui);color:var(--muted);letter-spacing:.06em;}
+@media (prefers-reduced-motion:reduce){.logo .shot{animation:none}}
+
+/* Resultat + redegørelse */
+.endwrap{display:flex;flex-direction:column;gap:18px;max-width:440px;width:100%;margin:auto;}
+.result{display:flex;flex-direction:column;align-items:center;gap:2px;text-align:center;}
+.rnum{font:900 clamp(72px,24vw,104px)/.9 var(--display);color:var(--hud);font-variant-numeric:tabular-nums;text-shadow:0 0 24px rgba(168,239,119,.25);}
+
+.report{background:var(--paper);color:var(--ink);font-family:var(--type);max-width:440px;width:100%;margin:auto;padding:24px 20px 20px;position:relative;
+  box-shadow:0 18px 50px rgba(0,0,0,.6);transform:rotate(-.6deg);
+  background-image:repeating-linear-gradient(0deg,transparent 0 27px,rgba(40,40,30,.05) 27px 28px);}
+.report .hdr{display:flex;justify-content:space-between;gap:10px;font-size:11px;letter-spacing:.08em;text-transform:uppercase;border-bottom:2px solid var(--ink);padding-bottom:8px;}
+.report h2{font:700 20px/1.2 var(--type);margin:14px 0 4px;text-wrap:balance;}
+.report p{font-size:14px;line-height:1.5;margin:8px 0;}
+.report .redact{background:var(--ink);color:var(--ink);border-radius:1px;padding:0 3px;}
+.report dl{display:grid;grid-template-columns:1fr auto;gap:4px 12px;font-size:14px;margin:10px 0;}
+.report dt{min-width:0;} .report dd{margin:0;font-weight:700;text-align:right;font-variant-numeric:tabular-nums;}
+.report .corr{border-top:1px dashed #6f6a5d;margin-top:12px;padding-top:6px;}
+.stamp{position:absolute;right:14px;top:62px;font:900 28px var(--display);color:var(--ink-red);border:3px solid var(--ink-red);padding:2px 10px;transform:rotate(9deg);opacity:.85;letter-spacing:.06em;mix-blend-mode:multiply;}
+.rank{font-weight:700;font-size:15px;margin-top:12px;}
+.actions{display:flex;gap:10px;flex-wrap:wrap;margin-top:16px;}
+.actions .btn{flex:1 1 160px;font-size:22px;padding:11px 14px;}
+.copied{font-size:12px;color:#4b5b4f;min-height:16px;margin-top:6px;}
+@media (prefers-reduced-motion:reduce){.bubble{animation:none}}
+</style>
+
+<div id="app">
+  <canvas id="c" aria-label="Spilområde: nattehimlen over Borris Skydeterræn. Tryk for at skyde."></canvas>
+
+  <div class="hud" id="hud" hidden>
+    <div class="col">
+      <span class="lbl">Point</span>
+      <span class="big" id="score">0</span>
+      <span class="official">Skud mod fly (officielt): <b>0</b></span>
+    </div>
+    <div class="col right">
+      <span class="lbl">Ur i lejren</span>
+      <span class="big" id="clock">20:05</span>
+      <span class="official">Officielt tidspunkt: <b>20:20</b></span>
+      <div class="ammo" id="ammo" aria-label="Skud tilbage"></div>
+    </div>
+  </div>
+
+  <div class="bubbles" id="bubbles" aria-live="polite"></div>
+  <button class="mute" id="mute" type="button" hidden>Lyd: til</button>
+
+  <div class="ticker" id="ticker" hidden>
+    <span class="tag">Live</span><span class="msg" id="tickmsg">Vagt i Borris-lejren. 43 skud. Brug dem klogt.</span>
+  </div>
+
+  <div class="overlay" id="startScreen">
+    <div class="start">
+      <span class="eyebrow">Borris Skydeterræn · 28. september · kl. 20:05</span>
+      <h1 class="logo" aria-label="43 Skud over Borris">
+        <span class="num" aria-hidden="true">43<span class="cut"></span><span class="shot"></span></span>
+        <span class="skud" aria-hidden="true">Skud</span>
+        <span class="over" aria-hidden="true">over Borris</span>
+      </h1>
+      <p class="tagline">Et satirisk arcadespil</p>
+      <p class="brief">Du har vagten. Noget lyser på himlen.<br>Du har 43 skud og ingen redegørelse endnu.<br>Tryk på det, du vil skyde.</p>
+      <ul class="menu">
+        <li><button class="primary" id="startBtn" type="button">Start spillet</button></li>
+        <li><button type="button" data-panel="howto" aria-expanded="false" aria-controls="howto">Sådan spiller du</button>
+          <div class="panel" id="howto" hidden>
+            <ul class="legend" aria-label="Hvad der flyver rundt">
+              <li><canvas data-icon="drone" width="88" height="56"></canvas>Formodet drone<span class="pts pos">+10</span></li>
+              <li><canvas data-icon="plane" width="88" height="56"></canvas>Passagerfly, Bergen–Billund<span class="pts neg">−50</span></li>
+              <li><canvas data-icon="venus" width="88" height="56"></canvas>Venus, har været der længe<span class="pts neg">−5</span></li>
+            </ul>
+            <p class="tip">Fly flyver lige og blinker med hvid strobe. Droner vakler. I mørke ligner det hele dog bare lys. Du har 43 skud til hele vagten.</p>
+          </div></li>
+        <li><button type="button" data-panel="hspanel" aria-expanded="false" aria-controls="hspanel">High score</button>
+          <div class="panel" id="hspanel" hidden><p id="hsStart">Ingen rekord endnu på denne telefon.</p></div></li>
+        <li><button type="button" data-panel="about" aria-expanded="false" aria-controls="about">Om sagen</button>
+          <div class="panel" id="about" hidden>
+            <p>Den 28. september 2025 affyrede danske soldater 43 skud mod en formodet drone over Borris-lejren. Et norsk passagerfly fra Bergen passerede området samtidig.</p>
+            <p>Forsvaret forklarede først, at der blev skudt kl. 20:20, efter flyet var væk. Naboer havde dog hørt skud tidligere. Godt et år senere rettede Forsvaret forklaringen.</p>
+            <p>Spillet er satire. Ingen droner, fly eller planeter kom til skade under udviklingen.</p>
+          </div></li>
+      </ul>
+    </div>
+  </div>
+
+  <div class="overlay" id="endScreen" hidden>
+    <div class="endwrap">
+      <div class="result"><span class="tagline">Dit resultat</span><span class="rnum" id="rnum">0</span><span class="tagline">Point</span></div>
+      <div class="report" id="report"></div>
+    </div>
+  </div>
+</div>
+
+<script>
+(() => {
+  const cv = document.getElementById('c');
+  let ctx = cv.getContext('2d');
+  const $ = id => document.getElementById(id);
+  let W = 0, H = 0, DPR = 1;
+  const reduced = matchMedia('(prefers-reduced-motion: reduce)').matches;
+
+  // ---------- Scene ----------
+  let stars = [], heather = [], buildings = [];
+  function resize(){
+    DPR = Math.min(window.devicePixelRatio || 1, 2);
+    W = cv.clientWidth; H = cv.clientHeight;
+    cv.width = Math.round(W*DPR); cv.height = Math.round(H*DPR);
+    ctx.setTransform(DPR,0,0,DPR,0,0);
+    buildScene();
+  }
+  function rnd(a,b){ return a + Math.random()*(b-a); }
+  function groundY(){ return H*0.80; }
+  function buildScene(){
+    stars = Array.from({length: Math.round(W*H/2600)}, () => ({x:rnd(0,W), y:rnd(0,groundY()-20), r:rnd(.3,1.3), p:rnd(0,6.28)}));
+    heather = []; let x = -10;
+    while (x < W+20){ heather.push({x, h:rnd(6,22)}); x += rnd(14,38); }
+    buildings = []; const gy = groundY(); let bx = W*0.08;
+    for (let i=0;i<6;i++){ const w = rnd(46,90); buildings.push({x:bx, w, h:rnd(18,34), win: Array.from({length: Math.floor(w/14)}, () => Math.random() < .45)}); bx += w + rnd(8,30); if (bx > W*0.6) break; }
+    buildings.tower = {x: W*0.70, h: Math.min(110, H*0.16)};
+  }
+  const venus = () => ({x: W*0.86, y: groundY() - H*0.10, r: 3.2});
+
+  function drawSky(t){
+    const gy = groundY();
+    const g = ctx.createLinearGradient(0,0,0,gy);
+    g.addColorStop(0,'#080D15'); g.addColorStop(.6,'#101b2b'); g.addColorStop(1,'#1c3047');
+    ctx.fillStyle = g; ctx.fillRect(0,0,W,H);
+    for (const s of stars){
+      const a = .45 + .4*Math.sin(t*1.3 + s.p);
+      ctx.fillStyle = `rgba(220,230,255,${a})`;
+      ctx.fillRect(s.x, s.y, s.r, s.r);
+    }
+    // Venus
+    const v = venus();
+    const pulse = 1 + .15*Math.sin(t*2);
+    const vg = ctx.createRadialGradient(v.x,v.y,0,v.x,v.y,14*pulse);
+    vg.addColorStop(0,'rgba(255,248,220,.95)'); vg.addColorStop(.25,'rgba(255,240,200,.35)'); vg.addColorStop(1,'rgba(255,240,200,0)');
+    ctx.fillStyle = vg; ctx.beginPath(); ctx.arc(v.x,v.y,14*pulse,0,7); ctx.fill();
+  }
+  function drawGround(){
+    const gy = groundY();
+    // lejren
+    ctx.fillStyle = '#05090f';
+    for (const b of buildings){
+      ctx.fillRect(b.x, gy-b.h, b.w, b.h+2);
+      ctx.beginPath(); ctx.moveTo(b.x-4, gy-b.h); ctx.lineTo(b.x+b.w/2, gy-b.h-10); ctx.lineTo(b.x+b.w+4, gy-b.h); ctx.fill();
+      b.win.forEach((on,i) => { if(on){ ctx.fillStyle='rgba(255,206,120,.75)'; ctx.fillRect(b.x+7+i*14, gy-b.h+8, 6, 6); ctx.fillStyle='#05090f'; } });
+    }
+    // vagttårn
+    const tw = buildings.tower; if (tw){
+      ctx.strokeStyle = '#05090f'; ctx.lineWidth = 3;
+      ctx.beginPath(); ctx.moveTo(tw.x-14, gy); ctx.lineTo(tw.x-6, gy-tw.h); ctx.moveTo(tw.x+14, gy); ctx.lineTo(tw.x+6, gy-tw.h);
+      ctx.moveTo(tw.x-11,gy-tw.h*.35); ctx.lineTo(tw.x+11,gy-tw.h*.65); ctx.moveTo(tw.x+11,gy-tw.h*.35); ctx.lineTo(tw.x-11,gy-tw.h*.65); ctx.stroke();
+      ctx.fillStyle = '#05090f'; ctx.fillRect(tw.x-13, gy-tw.h-14, 26, 15);
+      ctx.fillStyle = 'rgba(227,92,83,.9)'; ctx.fillRect(tw.x-1.5, gy-tw.h-19, 3, 3);
+    }
+    // hede
+    ctx.fillStyle = '#04070c';
+    ctx.beginPath(); ctx.moveTo(0,H); ctx.lineTo(0,gy);
+    for (const h of heather){ ctx.quadraticCurveTo(h.x-8, gy-h.h, h.x, gy-h.h*0.4); }
+    ctx.lineTo(W,gy); ctx.lineTo(W,H); ctx.fill();
+  }
+
+  // ---------- Entities ----------
+  function drawDrone(x,y,s,t,blink){
+    ctx.save(); ctx.translate(x,y);
+    ctx.strokeStyle = 'rgba(30,40,55,.9)'; ctx.lineWidth = Math.max(1,s*.12);
+    ctx.beginPath(); ctx.moveTo(-s,-s*.5); ctx.lineTo(s,s*.5); ctx.moveTo(s,-s*.5); ctx.lineTo(-s,s*.5); ctx.stroke();
+    ctx.fillStyle = 'rgba(25,32,44,.95)'; ctx.fillRect(-s*.3,-s*.22,s*.6,s*.44);
+    const on = Math.sin(t*9 + blink) > 0;
+    const pts = [[-s,-s*.5,'255,60,60'],[s,-s*.5,'255,60,60'],[-s,s*.5,'240,250,255'],[s,s*.5,'240,250,255']];
+    pts.forEach(([px,py,c],i) => {
+      const a = (i<2 ? (on?1:.25) : .9);
+      glow(px,py,Math.max(2,s*.28),c,a);
+    });
+    ctx.restore();
+  }
+  function drawPlane(x,y,s,t,dir){
+    ctx.save(); ctx.translate(x,y); ctx.scale(dir,1);
+    ctx.fillStyle = 'rgba(28,36,50,.9)';
+    ctx.beginPath(); ctx.ellipse(0,0,s*1.6,s*.22,0,0,7); ctx.fill();
+    ctx.beginPath(); ctx.moveTo(-s*.2,0); ctx.lineTo(-s*.55,-s*.9); ctx.lineTo(-s*.35,-s*.9); ctx.lineTo(s*.25,0); ctx.fill(); // vinge
+    ctx.beginPath(); ctx.moveTo(-s*1.3,0); ctx.lineTo(-s*1.6,-s*.6); ctx.lineTo(-s*1.45,-s*.6); ctx.lineTo(-s*1.1,0); ctx.fill(); // hale
+    // lys: grøn højre, rød venstre, hvid strobe, landingslys
+    glow(-s*.5,-s*.88,s*.2,'60,255,120',.95);
+    glow(s*1.55,0,s*.32,'255,250,235',.95); // landingslys foran
+    if ((t*1.4 % 1) < .12) glow(-s*1.55,-s*.55,s*.6,'255,255,255',1);
+    if (((t*1.4+.5) % 1) < .08) glow(0,s*.25,s*.4,'255,60,40',.9);
+    ctx.restore();
+  }
+  function drawUfo(x,y,s,t){
+    ctx.save(); ctx.translate(x,y);
+    const gg = ctx.createRadialGradient(0,0,0,0,0,s*3);
+    gg.addColorStop(0,'rgba(120,255,170,.35)'); gg.addColorStop(1,'rgba(120,255,170,0)');
+    ctx.fillStyle = gg; ctx.beginPath(); ctx.arc(0,0,s*3,0,7); ctx.fill();
+    ctx.fillStyle = '#9fb3a8'; ctx.beginPath(); ctx.ellipse(0,0,s*1.5,s*.42,0,0,7); ctx.fill();
+    ctx.fillStyle = 'rgba(170,255,210,.85)'; ctx.beginPath(); ctx.ellipse(0,-s*.25,s*.6,s*.45,0,Math.PI,0); ctx.fill();
+    for (let i=0;i<5;i++){ const a = (t*6 + i)%5 < 1 ? 1 : .35; glow(-s*1.1 + i*s*.55, s*.12, s*.16, '255,240,120', a); }
+    ctx.restore();
+  }
+  function glow(x,y,r,rgb,a){
+    const g = ctx.createRadialGradient(x,y,0,x,y,r*3);
+    g.addColorStop(0,`rgba(${rgb},${a})`); g.addColorStop(.3,`rgba(${rgb},${a*.45})`); g.addColorStop(1,`rgba(${rgb},0)`);
+    ctx.fillStyle = g; ctx.beginPath(); ctx.arc(x,y,r*3,0,7); ctx.fill();
+  }
+
+  // ---------- Game state ----------
+  const DUR = 75;          // sekunder pr. vagt
+  const AMMO = 43;
+  let G = null, mode = 'start', last = 0, muted = false, actx = null;
+
+  function newGame(){
+    G = {t:0, score:0, ammo:AMMO, shots:0, drones:0, planes:0, ufos:0, venus:0, misses:0,
+         firstShot:null, lastShot:null, ents:[], fx:[], nextDrone:.6, nextPlane:rnd(4,7), ufoAt: Math.random()<.65 ? rnd(22,62) : -1,
+         bubblesShown:0, endAt:null, tickT:0};
+    renderAmmo(); setScore(); setTick('Vagt i Borris-lejren. 43 skud. Brug dem klogt.');
+    $('bubbles').innerHTML = '';
+  }
+  function clockStr(t, sec){
+    const m = 5 + (t/DUR)*20; const mm = Math.floor(m), ss = Math.floor((m-mm)*60);
+    return `20:${String(mm).padStart(2,'0')}` + (sec ? `:${String(ss).padStart(2,'0')}` : '');
+  }
+
+  function spawnDrone(){
+    const gy = groundY();
+    const fromLeft = Math.random() < .5;
+    const s = rnd(7,13) * Math.min(1.25, Math.max(.8, W/420));
+    G.ents.push({k:'drone', x: fromLeft ? -20 : W+20, y: rnd(H*.16, gy-H*.14), vx:(fromLeft?1:-1)*rnd(28,70), vy:0,
+      s, blink:rnd(0,6), phase:rnd(0,6), life:0, hoverAt: rnd(1.5,4), hover: rnd(.8,2.2)});
+  }
+  function spawnPlane(){
+    const dir = Math.random() < .5 ? 1 : -1;
+    const s = rnd(9,13) * Math.min(1.25, Math.max(.8, W/420));
+    G.ents.push({k:'plane', x: dir>0 ? -60 : W+60, y: rnd(H*.14, H*.42), vx: dir*rnd(40,62), s, dir, hit:false});
+  }
+  function spawnUfo(){
+    const s = 12 * Math.min(1.25, Math.max(.8, W/420));
+    G.ents.push({k:'ufo', x: Math.random()<.5 ? -40 : W+40, y: rnd(H*.15,H*.35), s, life:0, tx:rnd(W*.2,W*.8), ty:rnd(H*.15,H*.5), jumps:0});
+  }
+
+  function update(dt){
+    G.t += dt;
+    const t = G.t;
+    G.nextDrone -= dt;
+    const alive = G.ents.filter(e => e.k==='drone').length;
+    if (G.nextDrone <= 0 && alive < 5 && t < DUR-2){ spawnDrone(); G.nextDrone = rnd(.9, 2.1) * (t > 40 ? .75 : 1); }
+    G.nextPlane -= dt;
+    if (G.nextPlane <= 0 && !G.ents.some(e=>e.k==='plane') && t < DUR-6){ spawnPlane(); G.nextPlane = rnd(12,18); }
+    if (G.ufoAt > 0 && t >= G.ufoAt){ spawnUfo(); G.ufoAt = -1; setTick('Ukendt objekt over hedestrækningen. Ingen kommentarer.'); }
+
+    for (const e of G.ents){
+      if (e.k==='drone'){
+        e.life += dt;
+        const hovering = e.life > e.hoverAt && e.life < e.hoverAt + e.hover;
+        const sp = hovering ? .1 : 1;
+        e.x += e.vx*dt*sp;
+        e.y += Math.sin(e.life*2.3 + e.phase)*22*dt + Math.sin(e.life*7)*6*dt;
+      } else if (e.k==='plane'){
+        e.x += e.vx*dt;
+      } else if (e.k==='ufo'){
+        e.life += dt;
+        e.x += (e.tx - e.x)*Math.min(1, dt*3.2); e.y += (e.ty - e.y)*Math.min(1, dt*3.2);
+        if (Math.hypot(e.tx-e.x, e.ty-e.y) < 4){ e.jumps++; if (e.jumps > 4){ e.tx = Math.random()<.5 ? -200 : W+200; e.ty = -80; } else { e.tx = rnd(W*.1,W*.9); e.ty = rnd(H*.12,H*.55); } }
+      }
+    }
+    G.ents = G.ents.filter(e => !e.dead && e.x > -260 && e.x < W+260 && e.y > -150);
+
+    for (const f of G.fx) f.t += dt;
+    G.fx = G.fx.filter(f => f.t < f.d);
+
+    G.tickT += dt;
+    if (G.tickT > 7){ G.tickT = 0; setTick(pick(AMBIENT)); }
+
+    if (G.endAt === null && (t >= DUR || G.ammo <= 0)) G.endAt = t + (G.ammo <= 0 ? 1.4 : 0);
+    if (G.endAt !== null && t >= G.endAt) endGame();
+
+    $('clock').textContent = clockStr(t);
+  }
+
+  function draw(now){
+    const t = now/1000;
+    drawSky(t);
+    if (G){
+      for (const e of G.ents){
+        if (e.k==='drone') drawDrone(e.x,e.y,e.s,t,e.blink);
+        else if (e.k==='plane') drawPlane(e.x,e.y,e.s,t,e.dir);
+        else if (e.k==='ufo') drawUfo(e.x,e.y,e.s,t);
+      }
+    }
+    drawGround();
+    if (G){
+      for (const f of G.fx){
+        const p = f.t/f.d;
+        if (f.k==='tracer'){
+          ctx.strokeStyle = `rgba(255,220,140,${1-p})`; ctx.lineWidth = 2;
+          ctx.beginPath(); ctx.moveTo(f.ox, f.oy); ctx.lineTo(f.ox + (f.x-f.ox)*Math.min(1,p*4), f.oy + (f.y-f.oy)*Math.min(1,p*4)); ctx.stroke();
+          ctx.strokeStyle = `rgba(168,239,119,${1-p})`; ctx.lineWidth = 1.5;
+          ctx.beginPath(); ctx.arc(f.x,f.y, 10 + p*14, 0, 7); ctx.stroke();
+          ctx.beginPath(); ctx.moveTo(f.x-22,f.y); ctx.lineTo(f.x-8,f.y); ctx.moveTo(f.x+8,f.y); ctx.lineTo(f.x+22,f.y);
+          ctx.moveTo(f.x,f.y-22); ctx.lineTo(f.x,f.y-8); ctx.moveTo(f.x,f.y+8); ctx.lineTo(f.x,f.y+22); ctx.stroke();
+        } else if (f.k==='boom'){
+          for (const s of f.parts){ ctx.fillStyle = `rgba(${s.c},${1-p})`; ctx.fillRect(f.x + s.vx*f.t, f.y + s.vy*f.t + 60*f.t*f.t, 2.5, 2.5); }
+        } else if (f.k==='label'){
+          ctx.font = `900 ${(f.size||16)+4}px "Big Shoulders Stencil Display", Impact, sans-serif`;
+          ctx.textAlign = 'center';
+          ctx.fillStyle = f.color.replace('A', String(1-p));
+          ctx.fillText(f.text, Math.min(W-60, Math.max(60,f.x)), f.y - 18 - p*26);
+        } else if (f.k==='flash'){
+          ctx.fillStyle = `rgba(227,92,83,${.28*(1-p)})`; ctx.fillRect(0,0,W,H);
+        }
+      }
+    }
+  }
+
+  function loop(now){
+    const dt = Math.min(.05, (now - last)/1000 || 0); last = now;
+    if (mode==='play') update(dt);
+    draw(now);
+    requestAnimationFrame(loop);
+  }
+
+  // ---------- Shooting ----------
+  function shoot(ev){
+    if (mode!=='play' || G.ammo<=0) return;
+    ev.preventDefault();
+    const r = cv.getBoundingClientRect();
+    const x = ev.clientX - r.left, y = ev.clientY - r.top;
+    G.ammo--; G.shots++;
+    const clk = clockStr(G.t, true);
+    if (!G.firstShot) G.firstShot = clk;
+    G.lastShot = clk;
+    renderAmmo(); bang();
+    const tw = buildings.tower;
+    G.fx.push({k:'tracer', x, y, ox: tw ? tw.x : W/2, oy: groundY() - (tw ? tw.h : 0) - 6, t:0, d:.45});
+
+    // find nærmeste ramte objekt
+    let best = null, bd = 1e9;
+    for (const e of G.ents){
+      if (e.dead) continue;
+      const rad = e.k==='plane' ? e.s*2.2 + 14 : e.k==='ufo' ? e.s*1.8+16 : e.s*1.6 + 18;
+      const d = Math.hypot(e.x-x, e.y-y);
+      if (d < rad && d < bd){ bd = d; best = e; }
+    }
+    if (best){
+      if (best.k==='drone'){
+        best.dead = true; G.drones++; G.score += 10;
+        boom(best.x,best.y,'255,210,140');
+        label(best.x,best.y,'+10','rgba(168,239,119,A)');
+        if (G.drones===1) setTick('Første drone nedskudt. Formodentlig.');
+        else if (Math.random()<.3) setTick(pick(DRONE_MSG));
+      } else if (best.k==='plane'){
+        if (!best.hit){
+          best.hit = true; G.planes++; G.score -= 50;
+          G.fx.push({k:'flash', t:0, d:.5});
+          label(best.x,best.y,'−50  BERGEN–BILLUND','rgba(227,92,83,A)',18);
+          setTick(pick(PLANE_MSG));
+          bubble(G.planes===1 ? 'de skyder sgu efter flyet?!' : 'nu igen. ringer til 114');
+          if (navigator.vibrate) try{ navigator.vibrate(120); }catch(e){}
+        } else {
+          G.score -= 10; label(best.x,best.y,'−10  stadig et fly','rgba(227,92,83,A)');
+        }
+      } else if (best.k==='ufo'){
+        best.dead = true; G.ufos++; G.score += 100;
+        boom(best.x,best.y,'140,255,190',40);
+        label(best.x,best.y,'+100  [KLASSIFICERET]','rgba(140,255,190,A)',18);
+        setTick('Objektet findes ikke. Det er nu også nedskudt.');
+      }
+    } else {
+      const v = venus();
+      if (Math.hypot(v.x-x, v.y-y) < 26){
+        G.venus++; G.score -= 5;
+        label(v.x, v.y, '−5  det var Venus', 'rgba(255,240,200,A)');
+        setTick(G.venus===1 ? 'Det var Venus. Den har hængt der i 4,6 milliarder år.' : `Venus ramt ${G.venus} gange. Ingen skader på Venus.`);
+      } else {
+        G.misses++;
+      }
+    }
+    setScore();
+    // nabo-beskeder ved bestemte skud
+    if (G.shots===1) bubble('hørte du det? det kommer fra lejren', clk);
+    else if (G.shots===14) bubble('det er altså ikke en øvelse det her', clk);
+    else if (G.shots===32) bubble('jeg skriver lige tidspunktet ned', clk);
+  }
+
+  function boom(x,y,c,n=22){
+    G.fx.push({k:'boom', x, y, t:0, d:.9, parts: Array.from({length:n}, () => ({vx:rnd(-90,90), vy:rnd(-110,40), c}))});
+  }
+  function label(x,y,text,color,size){ G.fx.push({k:'label', x, y, text, color, size, t:0, d:1.2}); }
+
+  function bubble(text, clk){
+    const b = document.createElement('div'); b.className = 'bubble';
+    const sm = document.createElement('small'); sm.textContent = `Nabo i Borris · ${clk || clockStr(G.t,true)}`;
+    b.append(sm, document.createTextNode(text));
+    const wrap = $('bubbles'); wrap.append(b);
+    while (wrap.children.length > 2) wrap.firstChild.remove();
+    setTimeout(() => b.remove(), 4200);
+  }
+
+  // ---------- Text ----------
+  const AMBIENT = [
+    'Dansk luftrum lukket for civile droner. Militære skud er stadig tilladt.',
+    'Forsvaret: Vi har fuldt overblik. Over tidspunkterne vender vi tilbage.',
+    'Ekspert: Det kan have været en drone. Eller et fly. Eller lys.',
+    'Lokale borgere tager notater. Flere har Messenger.',
+    'Billund Lufthavn melder normal drift. Indtil videre.',
+    'Pressetjenesten forbereder en redegørelse. Og en rettelse.',
+    'Seniorsergent noterer tidspunkt. Overstreger tidspunkt.',
+    'Radar viser intet usædvanligt. Radar er ikke blevet spurgt.',
+  ];
+  const DRONE_MSG = [
+    'Drone bekræftet nedskudt. Cirka.',
+    'Endnu en drone. Fire rotorer, siger vidner. Eller to.',
+    'Formodet drone ikke længere formodet.',
+  ];
+  const PLANE_MSG = [
+    'Forsvaret: Der blev ikke skudt mod et bemandet luftfartøj.',
+    'Passagerfly fra Bergen fortsætter mod Billund. Passagerne opdagede intet.',
+    'Det var ikke et fly. (Det var et fly.)',
+    'Flyselskab beder om en forklaring. Forsvaret beder om tid.',
+  ];
+  function pick(a){ return a[Math.floor(Math.random()*a.length)]; }
+  function setTick(m){ $('tickmsg').textContent = m; if (G) G.tickT = 0; }
+  function setScore(){ $('score').textContent = G.score; }
+  function renderAmmo(){
+    const el = $('ammo'); el.innerHTML = '';
+    for (let i=0;i<AMMO;i++){ const s = document.createElement('i'); if (i >= G.ammo) s.className = 'used'; el.append(s); }
+  }
+
+  // ---------- Sound ----------
+  function bang(){
+    if (muted) return;
+    try{
+      actx = actx || new (window.AudioContext || window.webkitAudioContext)();
+      const len = .18, buf = actx.createBuffer(1, actx.sampleRate*len, actx.sampleRate), d = buf.getChannelData(0);
+      for (let i=0;i<d.length;i++) d[i] = (Math.random()*2-1) * Math.pow(1 - i/d.length, 3);
+      const src = actx.createBufferSource(); src.buffer = buf;
+      const f = actx.createBiquadFilter(); f.type='lowpass'; f.frequency.value = 1400;
+      const g = actx.createGain(); g.gain.value = .5;
+      src.connect(f).connect(g).connect(actx.destination); src.start();
+    }catch(e){}
+  }
+
+  // ---------- Screens ----------
+  function hsGet(){ try{ return +localStorage.getItem('borris-hs') || 0; }catch(e){ return 0; } }
+  function hsSet(v){ try{ localStorage.setItem('borris-hs', String(v)); }catch(e){} }
+  function showHs(){ const h = hsGet(); $('hsStart').textContent = h ? `Din rekord på denne telefon: ${h} point.` : 'Ingen rekord endnu på denne telefon.'; }
+
+  function start(){
+    newGame(); mode = 'play';
+    $('startScreen').hidden = true; $('endScreen').hidden = true;
+    $('hud').hidden = false; $('ticker').hidden = false; $('mute').hidden = false;
+    try{ actx = actx || new (window.AudioContext || window.webkitAudioContext)(); actx.resume && actx.resume(); }catch(e){}
+  }
+
+  function rank(){
+    const s = G.score;
+    let r = s < 0 ? 'Sendes på kursus i flygenkendelse'
+      : s < 50 ? 'Rekrut på Borris Hede'
+      : s < 150 ? 'Seniorsergent'
+      : s < 300 ? 'Dronejæger af 1. grad'
+      : 'Hærchef (indtil næste redegørelse)';
+    if (G.planes > 0 && s >= 0) r += ', med en sag hos TV 2';
+    return r;
+  }
+
+  function esc(s){ return String(s).replace(/[&<>"]/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c])); }
+
+  function endGame(){
+    mode = 'end';
+    const prev = hsGet(); const best = Math.max(prev, G.score); if (G.score > prev) hsSet(G.score);
+    $('hud').hidden = true; $('ticker').hidden = true; $('mute').hidden = true; $('bubbles').innerHTML = '';
+    const first = G.firstShot ? G.firstShot.slice(0,5) : 'intet skud';
+    const clean = G.planes === 0;
+    const ufoTxt = G.ufos ? '<span class="redact">KLASSIF</span>' : '0';
+    $('report').innerHTML = `
+      <div class="hdr"><span>Forsvaret · Redegørelse</span><span>Sag 43/B</span></div>
+      ${clean ? '' : '<div class="stamp">RETTET</div>'}
+      <h2>Hændelsen ved Borris Skydeterræn</h2>
+      <p>Den pågældende aften cirka kl. 20:05 opdagede en medarbejder et flyvende objekt. Cirka kl. <b>20:20</b> blev der afgivet <b>${G.shots}</b> skud mod en formodet drone. Der blev <b>ikke</b> afgivet skud mod bemandet luftfartøj.</p>
+      <div class="corr">
+        <p><b>Rettelse${clean ? '' : ' (14 dage senere)'}:</b> ${clean
+          ? 'Ingen. Redegørelsen holder for en gangs skyld.'
+          : 'Der er gengivet forkerte oplysninger om skudafgivningen. Ifølge nabo, Messenger og politiets log:'}</p>
+        <dl>
+          <dt>Første skud</dt><dd>kl. ${esc(first)}</dd>
+          <dt>Skud afgivet</dt><dd>${G.shots} / ${AMMO}</dd>
+          <dt>Droner nedskudt</dt><dd>${G.drones}</dd>
+          <dt>Passagerfly ramt</dt><dd style="color:${G.planes ? 'var(--ink-red)' : 'inherit'}">${G.planes}</dd>
+          <dt>Venus beskudt</dt><dd>${G.venus}</dd>
+          <dt>UFO</dt><dd>${ufoTxt}</dd>
+          <dt>Skud i den blå luft</dt><dd>${G.misses}</dd>
+          <dt><b>Point</b></dt><dd>${G.score}</dd>
+        </dl>
+        <p class="rank">Vurdering: ${esc(rank())}</p>
+        <p style="font-size:12px;color:#5c574b;margin:4px 0 0">Rekord på denne telefon: ${best} point</p>
+      </div>
+      <div class="actions">
+        <button class="btn" id="again" type="button">Ny vagt</button>
+        <button class="btn ghost" id="share" type="button">Kopiér resultat</button>
+      </div>
+      <div class="copied" id="copied" aria-live="polite"></div>`;
+    $('rnum').textContent = G.score;
+    $('endScreen').hidden = false;
+    $('again').onclick = start;
+    $('share').onclick = () => {
+      const txt = `43 Skud over Borris: ${G.score} point. ${G.drones} droner, ${G.planes} passagerfly, Venus ${G.venus} gange${G.ufos ? ', og en UFO vi ikke må tale om' : ''}. Officielt: 0 fly, kl. 20:20.`;
+      const done = m => $('copied').textContent = m;
+      try{
+        navigator.clipboard.writeText(txt).then(() => done('Kopieret. Send det til en nabo.'), () => fallback(txt, done));
+      }catch(e){ fallback(txt, done); }
+    };
+  }
+  function fallback(txt, done){
+    const ta = document.createElement('textarea'); ta.value = txt; ta.style.cssText = 'width:100%;font:13px var(--type);margin-top:8px';
+    $('copied').replaceWith(ta); ta.focus(); ta.select();
+  }
+
+  // ---------- Legend icons ----------
+  function drawIcons(){
+    document.querySelectorAll('canvas[data-icon]').forEach(c => {
+      const x = c.getContext('2d'); const k = c.dataset.icon;
+      x.fillStyle = '#152335'; x.fillRect(0,0,c.width,c.height);
+      const swap = (fn) => { const o = ctx; ctx = x; try{ fn(); } finally { ctx = o; } };
+      swap(() => {
+        if (k==='drone') drawDrone(44,28,13,0.1,0);
+        if (k==='plane') drawPlane(48,30,14,0.02,1);
+        if (k==='ufo') drawUfo(44,30,14,0);
+        if (k==='venus') glow(44,28,5,'255,248,220',1);
+      });
+    });
+  }
+
+  // ---------- Boot ----------
+  document.querySelectorAll('[data-panel]').forEach(b => b.addEventListener('click', () => {
+    const p = $(b.dataset.panel); const open = p.hidden; p.hidden = !open; b.setAttribute('aria-expanded', String(open));
+  }));
+  cv.addEventListener('pointerdown', shoot);
+  $('startBtn').addEventListener('click', start);
+  $('mute').addEventListener('click', () => { muted = !muted; $('mute').textContent = muted ? 'Lyd: fra' : 'Lyd: til'; });
+  window.addEventListener('resize', resize);
+  resize(); showHs();
+  requestAnimationFrame(loop);
+  // ikoner tegnes efter første frame
+  setTimeout(drawIcons, 30);
+})();
+</script>
+
+</body></html>

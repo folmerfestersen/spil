@@ -1,0 +1,136 @@
+<!DOCTYPE html>
+<html lang="da">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Spillehallen · Mikkel Folmer Festersen</title>
+<meta name="description" content="En samling af små browserspil lavet af Mikkel Folmer Festersen. Spil dem direkte i browseren.">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Press+Start+2P&family=DM+Sans:wght@400;500;700&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --bg:#14121c; --panel:#1e1b2a; --line:#2e2a40; --ink:#f3efe6; --muted:#a39db8;
+  }
+  *{box-sizing:border-box}
+  html,body{margin:0}
+  body{
+    background:var(--bg);
+    background-image:radial-gradient(circle at 1px 1px,#ffffff0d 1px,transparent 0);
+    background-size:22px 22px;
+    color:var(--ink); font-family:"DM Sans",system-ui,sans-serif; line-height:1.5;
+    min-height:100vh;
+  }
+  .wrap{max-width:1080px;margin:0 auto;padding:56px 20px 40px}
+  header{margin-bottom:40px}
+  .eyebrow{font-family:"Press Start 2P",monospace;font-size:11px;color:#ffcf4a;letter-spacing:.06em;margin:0 0 18px}
+  h1{font-family:"Press Start 2P",monospace;font-size:clamp(28px,6vw,52px);line-height:1.15;margin:0 0 18px;
+     text-shadow:4px 4px 0 #e2465a}
+  .intro{max-width:560px;color:var(--muted);font-size:17px;margin:0}
+  .grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(300px,1fr));gap:18px}
+  .card{
+    --c:#ffcf4a;
+    position:relative;display:flex;flex-direction:column;
+    background:var(--panel);border:2px solid var(--line);border-radius:6px;
+    text-decoration:none;color:inherit;overflow:hidden;
+    transition:transform .12s ease, border-color .12s ease, box-shadow .12s ease;
+  }
+  .card:hover,.card:focus-visible{transform:translate(-3px,-3px);border-color:var(--c);box-shadow:6px 6px 0 var(--c);outline:none}
+  .screen{
+    height:120px;display:flex;align-items:center;justify-content:center;
+    background:
+      repeating-linear-gradient(0deg,#0000 0 3px,#00000022 3px 4px),
+      linear-gradient(135deg,var(--c),color-mix(in srgb,var(--c) 45%,#000));
+    font-size:52px;line-height:1;
+    border-bottom:2px solid var(--line);
+  }
+  .body{padding:18px 18px 16px;display:flex;flex-direction:column;gap:10px;flex:1}
+  h2{font-family:"Press Start 2P",monospace;font-size:14px;line-height:1.5;margin:0}
+  .body p{margin:0;color:var(--muted);font-size:15px;flex:1}
+  .meta{display:flex;justify-content:space-between;align-items:center;gap:8px;margin-top:4px}
+  .tag{font-size:12px;font-weight:700;color:var(--c);border:1px solid color-mix(in srgb,var(--c) 50%,transparent);border-radius:99px;padding:2px 10px}
+  .play{font-family:"Press Start 2P",monospace;font-size:10px;color:var(--c)}
+  footer{margin-top:48px;padding-top:20px;border-top:1px solid var(--line);color:var(--muted);font-size:14px;display:flex;flex-wrap:wrap;gap:6px 18px;justify-content:space-between}
+  footer a{color:var(--ink)}
+  @media (prefers-reduced-motion:reduce){.card{transition:none}}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <header>
+    <p class="eyebrow">▶ INSERT COIN</p>
+    <h1>Spillehallen</h1>
+    <p class="intro">Små browserspil, jeg har lavet for sjov. Nogle er satire, nogle har mine roommates i hovedrollen, og et enkelt er bare sand. Alle kan spilles direkte i browseren.</p>
+  </header>
+
+  <main class="grid">
+    <a class="card" href="kroedekro-simulator/" style="--c:#e2465a">
+      <div class="screen" aria-hidden="true">🌭</div>
+      <div class="body">
+        <h2>Krødekro Simulator</h2>
+        <p>16-bit roguelite autoshooter i Brotato-stil. Fire karakterer mod pølser, toiletter, slagbor, Lars Blomholt og det sammensmeltede Bofællesskabet.</p>
+        <div class="meta"><span class="tag">Bedst på computer</span><span class="play">SPIL ▶</span></div>
+      </div>
+    </a>
+
+    <a class="card" href="brofaellesskabet/" style="--c:#ff8a3d">
+      <div class="screen" aria-hidden="true">🇩🇰</div>
+      <div class="body">
+        <h2>Brofællesskabet</h2>
+        <p>Broforce-inspireret run-and-gun med Sebastian, Mathias, Mikkel og Signe. Sammenstyrtende terræn, metal-musik, fanger i bur og helikopterudtræk.</p>
+        <div class="meta"><span class="tag">Tastatur</span><span class="play">SPIL ▶</span></div>
+      </div>
+    </a>
+
+    <a class="card" href="stoevverden/" style="--c:#d9b26a">
+      <div class="screen" aria-hidden="true">⏳</div>
+      <div class="body">
+        <h2>Støvverden</h2>
+        <p>Falling sand-sandkasse med et strejf af WorldBox. Hæld elementer ud og se dem reagere med hinanden.</p>
+        <div class="meta"><span class="tag">Computer og mobil</span><span class="play">SPIL ▶</span></div>
+      </div>
+    </a>
+
+    <a class="card" href="borekongen/" style="--c:#4fc3a1">
+      <div class="screen" aria-hidden="true">⛏️</div>
+      <div class="body">
+        <h2>Borekongen</h2>
+        <p>Bor dig ned gennem jorden, byg lejren ud, køb robotter og forsk dig frem. Start forfra med krystaller, der gør hver ny boring stærkere.</p>
+        <div class="meta"><span class="tag">Computer og mobil</span><span class="play">SPIL ▶</span></div>
+      </div>
+    </a>
+
+    <a class="card" href="43-skud-over-borris/" style="--c:#8fb84a">
+      <div class="screen" aria-hidden="true">🎯</div>
+      <div class="body">
+        <h2>43 Skud over Borris</h2>
+        <p>Satire om droneaffæren i Borris. Skyd dronerne ned, men lad for alt i verden det norske passagerfly være.</p>
+        <div class="meta"><span class="tag">Lavet til mobil</span><span class="play">SPIL ▶</span></div>
+      </div>
+    </a>
+
+    <a class="card" href="hold-den-formand/" style="--c:#5b8def">
+      <div class="screen" aria-hidden="true">🚽</div>
+      <div class="body">
+        <h2>Hold den, formand!</h2>
+        <p>Partilederen har talt i to timer og drukket fire kopper kaffe. Løb ham til næste toilet, dyk under bannere og kom uden om journalisterne.</p>
+        <div class="meta"><span class="tag">Computer og mobil</span><span class="play">SPIL ▶</span></div>
+      </div>
+    </a>
+
+    <a class="card" href="den-fjerde-fredag/" style="--c:#c77dff">
+      <div class="screen" aria-hidden="true">⛪</div>
+      <div class="body">
+        <h2>Den Fjerde Fredag</h2>
+        <p>Satirisk swipe-spil om afskaffelsen og genindførslen af store bededag.</p>
+        <div class="meta"><span class="tag">Lavet til mobil</span><span class="play">SPIL ▶</span></div>
+      </div>
+    </a>
+  </main>
+
+  <footer>
+    <span>Lavet af Mikkel Folmer Festersen</span>
+  </footer>
+</div>
+</body>
+</html>

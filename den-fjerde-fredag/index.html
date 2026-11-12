@@ -1,0 +1,416 @@
+<!doctype html><html><head><meta charset=utf8><meta name=viewport content="width=device-width,initial-scale=1,viewport-fit=cover"><style>:root{color-scheme:light;box-sizing:border-box;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}html{scroll-padding-top:env(safe-area-inset-top,0px)}body{margin:0;padding:0;font:14px -apple-system,BlinkMacSystemFont,sans-serif;background:#fff;color:#000}img{max-width:100%}[hidden]:not([hidden=until-found i]){display:none!important}</style></head><body>
+<title>Den Fjerde Fredag</title>
+<meta name="claude:viewport-fit-sides" content="cover">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Alfa+Slab+One&family=Bricolage+Grotesque:opsz,wght@12..96,400;12..96,600;12..96,800&display=swap">
+<style>
+/* Layout: one phone-height screen. A Danish wall calendar on a parliament-blue desk; each card is a tear-off sheet. Single committed look. */
+:root{
+  --desk:#1c3247;       /* Christiansborg-blå bordplade */
+  --desk-2:#26425c;
+  --paper:#fbfaf7;      /* kalenderpapir */
+  --ink:#1a1e24;
+  --muted:#5d6672;
+  --holiday:#cf2a31;    /* helligdagsrød fra kalenderen */
+  --bun:#e0a44a;        /* varme hveder */
+  --good:#3f9b62;
+  --line:#dfe2e6;
+  --on-desk:#eef2f6;
+  --on-desk-dim:#9fb2c4;
+  --f-display:"Alfa Slab One", "Rockwell", "Georgia", serif;
+  --f-body:"Bricolage Grotesque", "Segoe UI", system-ui, sans-serif;
+  color-scheme:dark;
+}
+html,body{height:100%}
+body{background:var(--desk);color:var(--on-desk);font-family:var(--f-body);overflow:hidden;-webkit-tap-highlight-color:transparent;touch-action:manipulation}
+.app{height:100%;display:flex;flex-direction:column;max-width:460px;margin:0 auto;padding-left:max(16px, env(safe-area-inset-left, 0px));padding-right:max(16px, env(safe-area-inset-right, 0px));padding-block:10px 12px;gap:10px;box-sizing:border-box}
+button{font:inherit;cursor:pointer}
+button:focus-visible,.card:focus-visible{outline:3px solid var(--bun);outline-offset:3px}
+
+/* Top */
+.top{display:flex;align-items:center;justify-content:space-between;gap:8px}
+.brand{font-family:var(--f-display);font-size:1.05rem;letter-spacing:.01em;line-height:1}
+.brand b{color:var(--holiday);font-weight:400}
+.when{display:flex;align-items:center;gap:8px;font-size:.78rem;color:var(--on-desk-dim);text-transform:uppercase;letter-spacing:.08em;font-weight:600}
+.bunbtn{width:30px;height:30px;border:0;background:none;padding:0;border-radius:50%}
+.bunbtn svg{width:100%;height:100%;display:block}
+
+/* Bars */
+.bars{display:grid;grid-template-columns:repeat(4,1fr);gap:8px}
+.bar{display:flex;flex-direction:column;align-items:center;gap:4px;position:relative}
+.dot{height:10px;display:flex;align-items:center;justify-content:center}
+.dot i{display:block;border-radius:50%;background:var(--on-desk);transition:transform .15s;transform:scale(0)}
+.dot i.s{width:6px;height:6px;transform:scale(1)}
+.dot i.l{width:11px;height:11px;transform:scale(1)}
+.tube{width:100%;height:44px;border-radius:8px;background:var(--desk-2);position:relative;overflow:hidden;box-shadow:inset 0 0 0 1px rgba(255,255,255,.06)}
+.fill{position:absolute;left:0;right:0;bottom:0;background:var(--on-desk);transition:height .45s cubic-bezier(.3,1.4,.5,1),background .3s}
+.fill.danger{background:var(--holiday)}
+.tube svg{position:absolute;inset:0;margin:auto;width:26px;height:26px;mix-blend-mode:difference}
+.blabel{font-size:.66rem;text-transform:uppercase;letter-spacing:.07em;color:var(--on-desk-dim);font-weight:600;text-align:center;white-space:nowrap}
+
+.hands{display:flex;align-items:center;gap:10px;font-size:.78rem;color:var(--on-desk-dim);font-weight:600}
+.hands .track{flex:1;height:8px;background:var(--desk-2);border-radius:4px;overflow:hidden;position:relative}
+.hands .track span{position:absolute;inset:0 auto 0 0;background:var(--bun);transition:width .5s}
+.hands output{font-variant-numeric:tabular-nums;color:var(--on-desk);min-width:8.5ch;text-align:right}
+
+/* Card stage */
+.stage{flex:1;min-height:0;position:relative;display:flex;align-items:center;justify-content:center}
+.sheet-under{position:absolute;width:min(100%,360px);aspect-ratio:3/4;max-height:100%;background:var(--paper);border-radius:6px;opacity:.18;transform:translateY(8px) scale(.96)}
+.card{position:relative;width:min(100%,360px);max-height:100%;aspect-ratio:3/4;background:var(--paper);color:var(--ink);border-radius:6px;box-shadow:0 18px 40px rgba(0,0,0,.35);display:flex;flex-direction:column;overflow:hidden;touch-action:none;user-select:none;-webkit-user-select:none;will-change:transform}
+.card.anim{transition:transform .32s cubic-bezier(.2,.8,.3,1),opacity .32s}
+.rings{height:14px;background:var(--holiday);display:flex;justify-content:space-around;align-items:center;padding:0 22%}
+.rings i{width:8px;height:8px;border-radius:50%;background:var(--desk)}
+.portrait{flex:0 0 46%;position:relative;display:flex;align-items:center;justify-content:center;overflow:hidden}
+.portrait svg{width:62%;height:auto;max-height:90%}
+.choice{position:absolute;top:10px;padding:6px 10px;background:var(--ink);color:var(--paper);font-weight:800;font-size:.85rem;border-radius:3px;max-width:70%;opacity:0;transition:opacity .1s;line-height:1.15}
+.choice.l{left:10px;transform:rotate(-4deg)}
+.choice.r{right:10px;transform:rotate(4deg);text-align:right}
+.body{flex:1;display:flex;flex-direction:column;padding:12px 16px 14px;gap:6px;min-height:0}
+.who{display:flex;align-items:baseline;justify-content:space-between;gap:8px}
+.who h2{margin:0;font-size:.74rem;text-transform:uppercase;letter-spacing:.1em;font-weight:800;color:var(--muted)}
+.badge{font-size:.62rem;text-transform:uppercase;letter-spacing:.08em;font-weight:800;color:var(--holiday);border:1.5px solid var(--holiday);border-radius:3px;padding:1px 5px;white-space:nowrap}
+.line{margin:0;font-size:clamp(1rem,4.4vw,1.15rem);line-height:1.35;font-weight:600;text-wrap:pretty}
+
+.actions{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+.actions button{border:0;border-radius:6px;padding:12px 10px;background:var(--desk-2);color:var(--on-desk);font-weight:700;font-size:.92rem;line-height:1.2;min-height:52px;display:flex;align-items:center;gap:8px;justify-content:center;text-align:center}
+.actions button span.arrow{font-family:var(--f-display);color:var(--on-desk-dim)}
+.actions button:active{background:#33536f}
+.foot{font-size:.66rem;color:var(--on-desk-dim);text-align:center;line-height:1.35}
+
+.toast{position:absolute;left:50%;bottom:6px;transform:translate(-50%,10px);background:var(--bun);color:var(--ink);font-weight:800;font-size:.85rem;padding:8px 12px;border-radius:4px;opacity:0;transition:opacity .25s,transform .25s;pointer-events:none;max-width:90%;text-align:center;z-index:5}
+.toast.on{opacity:1;transform:translate(-50%,0)}
+
+/* Screens (start / overgang / slut) */
+.screen{position:absolute;inset:0;display:flex;align-items:center;justify-content:center}
+.panel{width:min(100%,360px);background:var(--paper);color:var(--ink);border-radius:6px;overflow:hidden;box-shadow:0 18px 40px rgba(0,0,0,.35);display:flex;flex-direction:column;max-height:100%}
+.panel .head{background:var(--holiday);color:var(--paper);padding:10px 16px;font-weight:800;text-transform:uppercase;letter-spacing:.12em;font-size:.75rem;display:flex;justify-content:space-between}
+.panel .inner{padding:18px 18px 18px;display:flex;flex-direction:column;gap:12px;overflow:auto}
+.datebig{display:flex;align-items:flex-end;gap:12px}
+.datebig .num{font-family:var(--f-display);font-size:5.4rem;line-height:.82;color:var(--holiday);position:relative}
+.datebig .num::after{content:"";position:absolute;left:-6%;right:-6%;top:46%;height:9px;background:var(--ink);transform:rotate(-14deg);border-radius:4px}
+.datebig.restored .num::after{display:none}
+.datebig .meta{font-weight:800;text-transform:uppercase;letter-spacing:.08em;font-size:.8rem;line-height:1.3;color:var(--muted)}
+.panel h1{font-family:var(--f-display);font-weight:400;font-size:1.9rem;line-height:1.02;margin:0;text-wrap:balance}
+.panel p{margin:0;line-height:1.45;font-size:.98rem}
+.panel .small{font-size:.78rem;color:var(--muted)}
+.cta{border:0;border-radius:6px;background:var(--ink);color:var(--paper);font-weight:800;font-size:1rem;padding:14px;margin-top:4px}
+.stats{display:grid;grid-template-columns:repeat(2,1fr);gap:6px 14px;font-size:.82rem;font-variant-numeric:tabular-nums}
+.stats div{display:flex;justify-content:space-between;border-bottom:1px solid var(--line);padding-bottom:3px}
+.stats b{font-weight:800}
+
+@media (prefers-reduced-motion:reduce){*{transition:none!important;animation:none!important}}
+@media (max-height:620px){.portrait{flex-basis:38%}.tube{height:34px}.foot{display:none}}
+</style>
+
+<div class="app" id="app">
+  <header class="top">
+    <div class="brand">Den Fjerde <b>Fredag</b></div>
+    <div class="when"><span id="when">Akt 1 · 2023</span>
+      <button class="bunbtn" id="bunbtn" aria-label="Varm hvede"></button>
+    </div>
+  </header>
+
+  <section class="bars" id="bars" aria-label="Bjælker"></section>
+
+  <div class="hands" id="hands" hidden>
+    <span>Ekstra hænder</span>
+    <div class="track"><span id="handsfill" style="width:0"></span></div>
+    <output id="handsout">0 / 8.500</output>
+  </div>
+
+  <main class="stage" id="stage">
+    <div class="sheet-under" id="under"></div>
+  </main>
+
+  <div class="actions" id="actions">
+    <button id="btnL"><span class="arrow">‹</span><span id="lblL">Nej</span></button>
+    <button id="btnR"><span id="lblR">Ja</span><span class="arrow">›</span></button>
+  </div>
+  <p class="foot">Satire. Figurerne er karikaturer uden navne. Replikker er opdigtede, undtagen dem mærket «citat».</p>
+</div>
+
+<script>
+(function(){
+// ---------- Ikoner og rekvisitter ----------
+const P = {
+  coin:'<svg viewBox="0 0 24 24" fill="#fff"><ellipse cx="12" cy="18" rx="8" ry="3"/><ellipse cx="12" cy="13" rx="8" ry="3"/><ellipse cx="12" cy="8" rx="8" ry="3"/></svg>',
+  mega:'<svg viewBox="0 0 24 24" fill="#fff"><path d="M3 10h4l10-5v14L7 14H3z"/><rect x="5" y="14" width="3" height="5" rx="1"/><path d="M19 9a4 4 0 0 1 0 6" stroke="#fff" stroke-width="2" fill="none"/></svg>',
+  church:'<svg viewBox="0 0 24 24" fill="#fff"><path d="M11 1h2v3h3v2h-3v3l6 5v9H5v-9l6-5V6H8V4h3z"/></svg>',
+  ballot:'<svg viewBox="0 0 24 24" fill="#fff"><rect x="3" y="11" width="18" height="11" rx="1"/><path d="M8 3h8v7H8z"/><rect x="7" y="12" width="10" height="2" fill="#1c3247"/></svg>',
+};
+const bun = (gold) => `<svg viewBox="0 0 100 100"><ellipse cx="50" cy="62" rx="40" ry="24" fill="${gold?'#f2c14e':'#e0a44a'}"/><ellipse cx="50" cy="56" rx="38" ry="22" fill="${gold?'#ffd86b':'#eab866'}"/><path d="M28 50q22 -12 44 0" stroke="#b9782f" stroke-width="4" fill="none" stroke-linecap="round"/><ellipse cx="38" cy="48" rx="10" ry="4" fill="#fff" opacity=".45"/>${gold?'<g stroke="#fff" stroke-width="3" stroke-linecap="round"><path d="M80 18v10M75 23h10"/><path d="M18 26v8M14 30h8"/></g>':''}</svg>`;
+const S = 'stroke="#1a1e24" stroke-width="3" stroke-linejoin="round" stroke-linecap="round"';
+const props = {
+  talerstol:`<svg viewBox="0 0 100 100"><path d="M30 40h40l-6 52H36z" fill="#fbfaf7" ${S}/><rect x="24" y="34" width="52" height="8" fill="#cf2a31" ${S}/><path d="M50 34V14" ${S}/><rect x="45" y="6" width="10" height="12" rx="5" fill="#1a1e24"/><path d="M42 60h16" ${S}/></svg>`,
+  kogeplade:`<svg viewBox="0 0 100 100"><rect x="10" y="30" width="80" height="56" rx="6" fill="#2a2f36" ${S}/><circle cx="34" cy="58" r="15" fill="#cf2a31"/><circle cx="34" cy="58" r="9" fill="none" stroke="#ff8a5c" stroke-width="3"/><circle cx="68" cy="58" r="12" fill="#3a4049"/><path d="M28 24q4-8 0-14M38 24q4-8 0-14" stroke="#fbfaf7" stroke-width="3" fill="none" stroke-linecap="round" opacity=".8"/></svg>`,
+  regneark:`<svg viewBox="0 0 100 100"><rect x="12" y="14" width="76" height="72" fill="#fbfaf7" ${S}/><path d="M12 30h76M12 46h76M12 62h76M36 14v72M62 14v72" stroke="#1a1e24" stroke-width="2"/><rect x="12" y="14" width="76" height="16" fill="#3f9b62" opacity=".85"/><text x="70" y="80" font-family="Arial" font-weight="700" font-size="12" fill="#cf2a31">-3 mia</text></svg>`,
+  megafon:`<svg viewBox="0 0 100 100"><path d="M14 42h16l44-22v60L30 58H14z" fill="#cf2a31" ${S}/><rect x="20" y="58" width="12" height="20" rx="3" fill="#1a1e24"/><path d="M82 38q8 12 0 24" ${S} fill="none"/></svg>`,
+  skuffe:`<svg viewBox="0 0 100 100"><rect x="10" y="50" width="80" height="38" fill="#c9a77c" ${S}/><rect x="40" y="64" width="20" height="6" rx="3" fill="#1a1e24"/><path d="M30 50l10-30h8l-4 30" fill="#cf2a31" ${S}/><path d="M60 22h18v20H60z" fill="#fbfaf7" ${S}/><path d="M64 28h10M64 34h8" stroke="#1a1e24" stroke-width="2"/></svg>`,
+  papir:`<svg viewBox="0 0 100 100"><rect x="26" y="20" width="50" height="66" fill="#e7e2d8" ${S} transform="rotate(-6 50 50)"/><rect x="24" y="14" width="50" height="66" fill="#fbfaf7" ${S}/><path d="M32 28h34M32 38h34M32 48h24M32 58h30" stroke="#1a1e24" stroke-width="2"/><rect x="50" y="66" width="18" height="8" fill="#cf2a31"/></svg>`,
+  nik:`<svg viewBox="0 0 100 100"><circle cx="50" cy="30" r="18" fill="#c7287a" ${S}/><path d="M50 48l-8 6 16 6-16 6 16 6-8 6" ${S} fill="none"/><rect x="32" y="80" width="36" height="10" rx="2" fill="#1a1e24"/><path d="M42 30h4M54 30h4" ${S}/></svg>`,
+  liste:`<svg viewBox="0 0 100 100"><path d="M30 6h40v88H30z" fill="#fbfaf7" ${S}/><path d="M38 18h24M38 28h24M38 38h24M38 48h24M38 58h24M38 68h24M38 78h18" stroke="#1a1e24" stroke-width="2"/><path d="M66 82l14 10M70 78l14 10" ${S}/><path d="M74 20l18 6-18 6 4-6z" fill="#5d6672" ${S}/></svg>`,
+  stak:`<svg viewBox="0 0 100 100"><g ${S} fill="#fbfaf7"><rect x="20" y="64" width="60" height="12"/><rect x="24" y="52" width="56" height="12"/><rect x="18" y="40" width="60" height="12"/><rect x="22" y="28" width="58" height="12"/></g><text x="30" y="24" font-family="Arial" font-weight="700" font-size="11" fill="#cf2a31">B-forslag</text></svg>`,
+  kaabe:`<svg viewBox="0 0 100 100"><path d="M30 90L38 34h24l8 56z" fill="#5a2d7a" ${S}/><circle cx="50" cy="24" r="12" fill="#fbfaf7" ${S}/><path d="M38 34q12 10 24 0" fill="#fbfaf7" ${S}/><path d="M50 50v24M42 58h16" stroke="#e0a44a" stroke-width="4" stroke-linecap="round"/></svg>`,
+  bolle: bun(false),
+  guldbolle: bun(true),
+  lommeregner:`<svg viewBox="0 0 100 100"><rect x="24" y="10" width="52" height="80" rx="6" fill="#2a2f36" ${S}/><rect x="32" y="18" width="36" height="16" fill="#b9d6a3"/><text x="36" y="31" font-family="Arial" font-weight="700" font-size="11" fill="#1a1e24">8.500</text><g fill="#fbfaf7"><rect x="32" y="42" width="10" height="9"/><rect x="45" y="42" width="10" height="9"/><rect x="58" y="42" width="10" height="9"/><rect x="32" y="56" width="10" height="9"/><rect x="45" y="56" width="10" height="9"/><rect x="58" y="56" width="10" height="9"/><rect x="32" y="70" width="10" height="9"/><rect x="45" y="70" width="10" height="9"/></g><rect x="58" y="70" width="10" height="9" fill="#cf2a31"/></svg>`,
+  kalender:`<svg viewBox="0 0 100 100"><rect x="16" y="18" width="68" height="70" fill="#fbfaf7" ${S}/><rect x="16" y="18" width="68" height="16" fill="#cf2a31" ${S}/><text x="50" y="74" text-anchor="middle" font-family="Georgia" font-weight="700" font-size="34" fill="#1a1e24">?</text><path d="M26 44l14 14M40 44L26 58" stroke="#cf2a31" stroke-width="3"/></svg>`,
+  krone:`<svg viewBox="0 0 100 100"><path d="M18 70l-4-40 20 18 16-28 16 28 20-18-4 40z" fill="#e0a44a" ${S}/><rect x="18" y="70" width="64" height="12" fill="#e0a44a" ${S}/><circle cx="50" cy="56" r="5" fill="#cf2a31"/><path d="M24 92q26-10 52 0" stroke="#fbfaf7" stroke-width="3" fill="none" opacity=".6" stroke-dasharray="4 5"/></svg>`,
+  madkasse:`<svg viewBox="0 0 100 100"><rect x="14" y="40" width="72" height="44" rx="6" fill="#3f9b62" ${S}/><path d="M36 40v-10h28v10" ${S} fill="none"/><text x="50" y="68" text-anchor="middle" font-family="Arial" font-weight="800" font-size="14" fill="#fbfaf7">+0,45%</text></svg>`,
+  pakke:`<svg viewBox="0 0 100 100"><rect x="20" y="40" width="60" height="46" fill="#fbfaf7" ${S}/><rect x="16" y="32" width="68" height="12" fill="#cf2a31" ${S}/><path d="M50 32v54" stroke="#cf2a31" stroke-width="6"/><path d="M50 32q-18-20-20-6t20 6q18-20 20-6t-20 6" fill="none" ${S}/></svg>`,
+  kuffert:`<svg viewBox="0 0 100 100"><rect x="16" y="34" width="68" height="50" rx="6" fill="#e0a44a" ${S}/><path d="M38 34v-10h24v10" ${S} fill="none"/><path d="M16 52h68" ${S}/><circle cx="28" cy="88" r="4" fill="#1a1e24"/><circle cx="72" cy="88" r="4" fill="#1a1e24"/></svg>`,
+  mikrofon:`<svg viewBox="0 0 100 100"><rect x="38" y="10" width="24" height="40" rx="12" fill="#2a2f36" ${S}/><rect x="34" y="42" width="32" height="16" fill="#cf2a31" ${S}/><text x="50" y="54" text-anchor="middle" font-family="Arial" font-weight="800" font-size="9" fill="#fbfaf7">TV</text><path d="M50 58v30" ${S}/></svg>`,
+  hammer:`<svg viewBox="0 0 100 100"><rect x="26" y="20" width="44" height="22" rx="4" fill="#8a5a33" ${S} transform="rotate(-20 48 31)"/><path d="M52 40l22 40" stroke="#8a5a33" stroke-width="8" stroke-linecap="round"/><rect x="14" y="80" width="46" height="10" rx="2" fill="#2a2f36"/></svg>`,
+  graf:`<svg viewBox="0 0 100 100"><rect x="12" y="12" width="76" height="76" fill="#fbfaf7" ${S}/><path d="M20 76l18-14 14 8 16-24 12-14" stroke="#3f9b62" stroke-width="5" fill="none" stroke-linecap="round" stroke-linejoin="round"/><path d="M72 26h10v10" stroke="#3f9b62" stroke-width="5" fill="none" stroke-linecap="round"/></svg>`,
+  slips:`<svg viewBox="0 0 100 100"><path d="M30 14h40l-10 14H40z" fill="#fbfaf7" ${S}/><path d="M44 28h12l6 44-12 14-12-14z" fill="#1c3247" ${S}/><path d="M42 44l16 8M40 58l20 8" stroke="#e0a44a" stroke-width="3"/></svg>`,
+  spoegelse:`<svg viewBox="0 0 100 100"><path d="M24 90V46a26 26 0 0 1 52 0v44l-9-8-8 8-9-8-8 8-9-8z" fill="#fbfaf7" opacity=".9" ${S}/><path d="M30 24l-4-16 12 10 12-14 12 14 12-10-4 16z" fill="#e0a44a" ${S}/><circle cx="41" cy="48" r="4" fill="#1a1e24"/><circle cx="59" cy="48" r="4" fill="#1a1e24"/><path d="M42 62q8 -5 16 0" ${S} fill="none"/></svg>`,
+  haand:`<svg viewBox="0 0 100 100"><rect x="10" y="60" width="80" height="28" rx="5" fill="#2a2f36" ${S}/><circle cx="50" cy="74" r="12" fill="#cf2a31"/><path d="M36 58V30a5 5 0 0 1 10 0v-6a5 5 0 0 1 10 0v4a5 5 0 0 1 10 0v26q0 6-6 8H40q-4-2-4-4z" fill="#ffb199" ${S}/><path d="M28 18l-6-6M74 16l6-6M50 8V2" ${S}/></svg>`,
+};
+
+// ---------- Figurer ----------
+const F = {
+  "Statsministeren":{p:"talerstol",bg:"#cf2a31"},
+  "Moderaternes formand":{p:"kogeplade",bg:"#7f5fb0"},
+  "SF-formanden":{p:"skuffe",bg:"#e86f8a"},
+  "Finansministeren":{p:"regneark",bg:"#9fb2c4"},
+  "Beskæftigelsesministeren":{p:"papir",bg:"#d98b6b"},
+  "De Radikales formand":{p:"nik",bg:"#e7c6db"},
+  "Forsvarsministeren":{p:"liste",bg:"#6f8a5a"},
+  "Oppositionen":{p:"stak",bg:"#5b7fa8"},
+  "Fagbevægelsen":{p:"megafon",bg:"#f2d0cf"},
+  "Biskoppen":{p:"kaabe",bg:"#d7cfe6"},
+  "Bageren":{p:"bolle",bg:"#f4dfb8"},
+  "Økonomen":{p:"lommeregner",bg:"#b9d6a3"},
+  "Lønmodtageren":{p:"madkasse",bg:"#cfe3d5"},
+  "Konfirmanden":{p:"pakke",bg:"#e9eef3"},
+  "Rejsebureauet":{p:"kuffert",bg:"#9cc9d9"},
+  "Journalisten":{p:"mikrofon",bg:"#d6dbe1"},
+  "Folketinget":{p:"hammer",bg:"#c9b79c"},
+  "Konjunkturen":{p:"graf",bg:"#dde8d6"},
+  "Virksomhedsejeren":{p:"slips",bg:"#c6d4e3"},
+  "Den skeptiske vælger":{p:"kalender",bg:"#e3dccf"},
+  "Christian V's spøgelse":{p:"spoegelse",bg:"#3b4a7a"},
+  "Den gyldne varme hvede":{p:"guldbolle",bg:"#1c3247"},
+  "Moderaternes formand ":{p:"haand",bg:"#7f5fb0"},
+};
+
+// ---------- Kort (fra kortbunken) ----------
+// e: [Statskassen, Fagbevægelsen, Kirken, Vælgerne, Hænder]
+const C = [
+["A1-01","1","Finansministeren","Vi mangler 3 milliarder til forsvaret. Jeg har fundet en fridag, som ingen bruger.","Tag den","Find noget andet",[20,-15,-10,-15,0],[-10,0,0,5,0]],
+["A1-02","1","Moderaternes formand","Det her var altså ikke min idé. Det lå på bordet, da jeg kom.","Skriv under","Så gå hjem igen",[5,0,0,-5,0],[-10,0,0,5,0]],
+["A1-03","1","Statsministeren","Det er nødvendigt. Det var også nødvendigt i går. Bliver det nødvendigt i morgen?","Ja, nødvendigt","Måske ikke",[10,0,0,-10,0],[-5,0,0,5,0]],
+["A1-04","1","Fagbevægelsen","50.000 står på Slotspladsen. Kommer du ud og siger hej?","Gå ud","Bliv inde",[0,10,0,-5,0],[0,-15,0,-5,0],"Statsministeren bliver buhet ud."],
+["A1-05","1","Biskoppen","Det er altså 338 år gammelt. Kunne I ikke have spurgt os først?","Ring til biskopperne","Vi har travlt",[-5,0,15,0,0],[0,0,-15,0,0]],
+["A1-06","1","Bageren","Hvem skal købe varme hveder, når ingen har fri dagen efter?","Gør hveder til nationalret","Det må markedet klare",[-5,0,0,10,0],[0,0,0,-5,0],null,"Bageren græder."],
+["A1-07","1","Forsvarsministeren","Jeg har en indkøbsliste. Den er lidt længere end 3 milliarder.","Køb det hele","Én ting ad gangen",[-20,0,0,5,0],[5,0,0,0,0]],
+["A1-08","1","Oppositionen","Vi vil have en folkeafstemning!","Lad folket stemme","Det er ikke nødvendigt",[-10,0,0,15,0],[0,0,0,-10,0]],
+["A1-09","1","Økonomen","En fridag mindre giver 8.500 ekstra hænder. Det har jeg regnet på.","Sæt det på et skilt","Ingen gider tal",[10,-10,0,0,0],[-5,0,0,5,0]],
+["A1-10","1","Lønmodtageren","Får jeg så noget for det?","0,45 procent oven i lønnen","Du får et stærkere forsvar",[-10,5,0,5,0],[0,-10,0,-10,0]],
+["A1-11","1","De Radikales formand","Vi stemmer for. Men skriv lige, at vi var lidt kede af det.","Skriv det i en fodnote","Stem eller lad være",[5,0,0,-5,0],[-10,0,0,0,0]],
+["A1-12","1","SF-formanden","Arbejd lidt længere hver dag i stedet, så beholder alle fridagen.","God idé","For besværligt",[-10,5,0,10,0],[0,-5,0,-5,0]],
+["A1-13","1","Konfirmanden","Hvad så med alle konfirmationerne?","Flyt dem til lørdag","Konfirmer dig en anden dag",[-5,0,10,5,0],[0,0,-10,-5,0]],
+["A1-14","1","Rejsebureauet","Folk har allerede booket forlænget weekend i 2024!","Udskyd det et år","Afbestillingsforsikring",[-10,0,0,5,0],[0,0,0,-10,0]],
+["A1-15","1","Statsministeren","Kan vi kalde det en investering i tryghed?","Kald det tryghed","Kald det en fridag",[0,-5,0,5,0],[0,0,0,-5,0]],
+["A1-16","1","Fagbevægelsen","Vi har samlet underskrifter. Rigtig mange.","Tag imod dem","Printeren er løbet tør",[-5,10,0,0,0],[0,-10,0,-10,0]],
+["A1-17","1","Journalisten","Hvorfor stod det ikke i jeres valgprogram?","Svar ærligt","Næste spørgsmål",[-5,0,0,10,0],[0,0,0,-15,0]],
+["A1-18","1","Folketinget","Loven er klar til vedtagelse.","Vedtag","Træk den tilbage",[15,-10,-10,-15,0],[-20,10,10,10,0]],
+["A2-01","2","Moderaternes formand","Jeg lægger hånden på kogepladen: Dagen kommer tilbage.","Tæt på kogepladen","Tag handsker på",[0,0,0,15,0],[0,0,0,-5,0],null,null,true],
+["A2-02","2","SF-formanden","Jeg lovede den tilbage. Nu er jeg minister og skal selv finde pengene.","Find dem","Det var lettere i opposition",[-15,0,0,10,0],[0,0,0,-15,0]],
+["A2-03","2","Finansministeren","Der dukkede lige nogle milliarder op. Fortryder vi?","Indrøm det","Vi fortryder intet",[-5,0,0,10,0],[0,0,0,-10,0]],
+["A2-04","2","Finansministeren","Vi laver ikke samme fejl igen. Denne gang skriver vi besparelserne ... et andet sted.","Gem dem godt","Skriv dem i grundlaget",[10,0,0,-10,0],[-10,0,0,5,0]],
+["A2-05","2","Økonomen","Betingelsen er 8.500 ekstra hænder inden 2030. Ellers ingen fridag.","Det klarer vi","Det ser vi på",[0,0,0,5,0],[0,0,0,-5,0]],
+["A2-06","2","Beskæftigelsesministeren","Det står fuldstændig klart i regeringsgrundlaget.","Læs det højt igen","Læs det med småt",[0,0,0,5,0],[0,0,0,-10,0],null,null,true],
+["A2-07","2","Beskæftigelsesministeren","Skal vi stramme dagpengene for at finde hænderne?","Stram","Lad være",[5,-20,0,-5,2500],[0,5,0,0,0]],
+["A2-08","2","Finansministeren","Skær i SU'en? Studerende har jo ikke fri alligevel.","Skær","Lad SU'en være",[10,0,0,-10,1500],[-10,0,0,0,0],"Studerende demonstrerer foran Christiansborg."],
+["A2-09","2","Finansministeren","Seniorpensionen kunne godt trænge til lidt ... justering.","Juster","Rør den ikke",[5,-15,0,-10,2000],[-5,5,0,0,0]],
+["A2-10","2","Økonomen","Hvad med at hæve pensionsalderen et halvt år mere?","Hæv den","Folk er trætte nok",[10,-20,0,-15,3000],[0,0,0,0,0]],
+["A2-11","2","Konjunkturen","Beskæftigelsen stiger helt af sig selv. Skal I tage æren?","Tag æren","Vær ydmyg",[0,0,0,10,1500],[0,0,0,0,1500]],
+["A2-12","2","Virksomhedsejeren","Kan vi ikke bare give vores folk fri selv?","Lad firmaerne klare det","Det er statens dag",[0,5,-5,0,500],[0,0,5,0,0]],
+["A2-13","2","Den skeptiske vælger","Seks ud af ti af os tror ikke på, at det sker.","Bevis det","Vent og se",[-10,0,0,10,0],[0,0,0,-10,0]],
+["A2-14","2","Oppositionen","Vi har stillet beslutningsforslag. Kan I ikke bare gøre det nu?","Gør det nu","Det står 2030",[-20,5,5,20,0],[0,0,0,-5,0]],
+["A2-15","2","Statsministeren","Det er helt rigtigt, at vi gerne vil være med til at diskutere det.","Diskuter","Stå fast som sidst",[0,0,0,5,0],[0,0,0,-15,0],null,null,true],
+["A2-16","2","De Radikales formand","Vi fjernede den, og nu giver vi den tilbage. Det kalder man balance.","Nik","Spørg hvad de mener",[0,0,0,5,0],[-5,0,0,0,0]],
+["A2-17","2","Forsvarsministeren","Den indkøbsliste fra 2023? Den er blevet længere.","Køb mere","Vi har en fridag at betale",[-15,0,0,0,0],[5,0,0,-5,0]],
+["A2-18","2","Fagbevægelsen","Hvad med de 0,45 procent? Skal de tilbage nu?","Tag dem tilbage","Lad folk beholde dem",[10,-15,0,-5,0],[-10,10,0,5,0]],
+["A2-19","2","Biskoppen","Velkommen tilbage. Vi har gemt dagen til jer.","Inviter til pressemøde","Vi klarer det selv",[0,0,15,0,0],[0,0,-5,0,0]],
+["A2-20","2","Bageren","Jeg har bagt varme hveder i tre år uden fridag. Skal jeg fortsætte?","Hold ovnen varm","Hold pause til 2030",[0,0,0,5,0],[0,0,0,-5,0]],
+["A2-21","2","Folketinget","2030. Lovforslaget er klar. Er de 8.500 hænder fundet?","Vedtag","Udskyd",[-15,10,10,20,0],[0,-10,-10,-20,0]],
+["SP-01","S","Christian V's spøgelse","Jeg indførte den i 1686. Hvem har rørt min dag?","Giv ham dagen tilbage","Hvem er du?",[-10,10,10,10,0],[0,0,-10,0,0]],
+["SP-02","S","Den gyldne varme hvede","Du har fundet den gyldne varme hvede.","Spis den","Gem den til 2030",[0,5,5,10,0],[0,0,0,0,500]],
+["SP-03","S","Moderaternes formand ","Av.","Køl hånden","Lad som ingenting",[0,0,0,-20,0],[0,0,0,-25,0]],
+].map(r=>({id:r[0],akt:r[1],fig:r[2],line:r[3],ja:r[4],nej:r[5],ej:r[6],en:r[7],tJa:r[8]||null,tNej:r[9]||null,citat:!!r[10]}));
+const byId = Object.fromEntries(C.map(c=>[c.id,c]));
+
+const BARS = [
+  {k:"Statskassen",i:P.coin},{k:"Fagbevægelsen",i:P.mega},{k:"Kirken",i:P.church},{k:"Vælgerne",i:P.ballot}
+];
+const ENDS = {
+  "0-lo":["Statskassen er tom","Forsvaret betaler for kampfly med varme hveder."],
+  "0-hi":["Pengetanken flyder over","Så mange penge, at selv finansministeren fortryder."],
+  "1-lo":["Generalstrejke","Hele landet holder store bededag hver dag."],
+  "1-hi":["Fagbevægelsen tager over","De indfører store bededag to gange om året."],
+  "2-lo":["Kirkerne lukker","Biskopperne lukker kirkerne i protest. Ingen opdager det før juleaften."],
+  "2-hi":["Tolv nye helligdage","Kirken har vundet. Økonomen besvimer."],
+  "3-lo":["Valget er tabt","Til en bager."],
+  "3-hi":["For populær","Så populær, at du får lov at afskaffe en helligdag mere. Hvilken skal det være?"],
+  "bolle":["Regeringen faldt","Den faldt på en bolle. Store bededag overlevede, og du gjorde ikke."],
+  "sejr":["Den fjerde fredag er tilbage","2030. Fredagen efter påske er rød i kalenderen igen. Varme hveder til alle."],
+  "braendt":["Hånden brændte","Hænderne blev aldrig fundet. Dagen kommer måske i 2034."],
+  "udskudt":["Udskudt","Til efter næste valg. Igen."],
+};
+
+// ---------- Tilstand ----------
+let st;
+function shuffle(a){for(let i=a.length-1;i>0;i--){const j=Math.floor(Math.random()*(i+1));[a[i],a[j]]=[a[j],a[i]]}return a}
+function deck(akt){
+  if(akt==="1"){const mid=C.filter(c=>c.akt==="1"&&c.id!=="A1-01"&&c.id!=="A1-18").map(c=>c.id);return ["A1-01",...shuffle(mid),"A1-18"]}
+  const mid=C.filter(c=>c.akt==="2"&&!["A2-01","A2-05","A2-21"].includes(c.id)).map(c=>c.id);
+  return ["A2-01","A2-05",...shuffle(mid),"A2-21"];
+}
+function fresh(){return {phase:"start",akt:"1",bars:[50,50,50,50],hands:0,queue:deck("1"),cur:null,count:0,ghost:false,goldTaps:0,goldUsed:false,total:deck("1").length}}
+st = fresh();
+
+// ---------- DOM ----------
+const $=id=>document.getElementById(id);
+const barsEl=$("bars"), stage=$("stage");
+BARS.forEach((b,i)=>{
+  const d=document.createElement("div");d.className="bar";
+  d.innerHTML=`<div class="dot"><i id="dot${i}"></i></div><div class="tube"><div class="fill" id="fill${i}"></div>${b.i}</div><div class="blabel">${b.k}</div>`;
+  barsEl.appendChild(d);
+});
+$("bunbtn").innerHTML=bun(false);
+
+function renderBars(){
+  st.bars.forEach((v,i)=>{const f=$("fill"+i);f.style.height=Math.max(0,Math.min(100,v))+"%";f.classList.toggle("danger",v<=15||v>=85)});
+  const two=st.akt==="2";$("hands").hidden=!two;
+  $("handsfill").style.width=Math.min(100,st.hands/8500*100)+"%";
+  $("handsout").textContent=st.hands.toLocaleString("da-DK")+" / 8.500";
+  let when="Akt 1 · 2023";
+  if(two){const done=st.total-st.queue.length;const y=2026+Math.min(4,Math.floor(done/Math.max(1,st.total)*5));when="Akt 2 · "+y}
+  $("when").textContent=when;
+}
+function showDots(e){for(let i=0;i<4;i++){const d=$("dot"+i);const v=e?Math.abs(e[i]):0;d.className=v===0?"":(v>=15?"l":"s")}}
+
+function toast(msg){let t=stage.querySelector(".toast");if(!t){t=document.createElement("div");t.className="toast";stage.appendChild(t)}t.textContent=msg;t.classList.add("on");clearTimeout(t._h);t._h=setTimeout(()=>t.classList.remove("on"),2200)}
+
+function clearStage(){[...stage.querySelectorAll(".card,.screen")].forEach(n=>n.remove())}
+function setActions(on){$("actions").style.visibility=on?"visible":"hidden"}
+
+// ---------- Skærme ----------
+function screen(head,html,btn,fn){
+  clearStage();setActions(false);showDots(null);$("under").hidden=true;
+  const s=document.createElement("div");s.className="screen";
+  s.innerHTML=`<div class="panel"><div class="head">${head}</div><div class="inner">${html}<button class="cta" id="cta">${btn}</button></div></div>`;
+  stage.appendChild(s);$("cta").onclick=fn;$("cta").focus({preventScroll:true});
+}
+function startScreen(){
+  st=fresh();renderBars();
+  screen("<span>Fredag</span><span>4. efter påske</span>",`
+    <div class="datebig"><div class="num">5</div><div class="meta">Maj 2023<br>Store bededag<br>1686 til 2023</div></div>
+    <h1>Den Fjerde Fredag</h1>
+    <p>Du styrer regeringen. Swipe til venstre eller højre for at svare. Hold Statskassen, Fagbevægelsen, Kirken og Vælgerne i live, og overlev både afskaffelsen og genindførslen.</p>
+    <p class="small">Prikkerne over bjælkerne viser, hvad et svar rører ved. De store prikker rører mest.</p>`,
+    "Tag fridagen",()=>{st.phase="play";next()});
+}
+function actTwo(){
+  st.akt="2";st.queue=deck("2");st.total=st.queue.length;st.bars=[50,50,50,50];renderBars();
+  screen("<span>Et valg senere</span><span>2026</span>",`
+    <div class="datebig"><div class="num" style="font-size:3.4rem">2030</div><div class="meta">Måske<br>Hvis tallene<br>går op</div></div>
+    <h1>Akt 2: Genindførslen</h1>
+    <p>Valgkampen er knap et døgn gammel, og de samme partier vil nu give dagen tilbage. Betingelsen er 8.500 ekstra hænder inden 2030.</p>
+    <p class="small">Bjælkerne starter forfra. Hænder-tælleren er ny.</p>`,
+    "Lad os diskutere det",()=>{st.phase="play";next()});
+}
+function ending(key){
+  const [h,t]=ENDS[key];const win=key==="sejr";
+  st.phase="end";
+  screen(win?"<span>Fredag</span><span>Helligdag</span>":"<span>Slut</span><span>"+(st.akt==="1"?"2023":"2026-30")+"</span>",`
+    ${win?'<div class="datebig restored"><div class="num">17</div><div class="meta">Maj 2030<br>Store bededag</div></div>':''}
+    <h1>${h}</h1><p>${t}</p>
+    <div class="stats">${BARS.map((b,i)=>`<div><span>${b.k}</span><b>${Math.round(st.bars[i])}</b></div>`).join("")}<div><span>Kort</span><b>${st.count}</b></div>${st.akt==="2"?`<div><span>Hænder</span><b>${st.hands.toLocaleString("da-DK")}</b></div>`:""}</div>`,
+    "Spil igen",()=>{startScreen()});
+}
+
+// ---------- Kort ----------
+function next(){
+  let id;
+  if(st.forceNext){id=st.forceNext;st.forceNext=null}
+  else{
+    if(!st.ghost&&st.count>2&&st.queue.length>1&&Math.random()<0.03){st.ghost=true;id="SP-01"}
+    else id=st.queue.shift();
+  }
+  st.cur=id;showCard(byId[id]);renderBars();
+}
+function showCard(c){
+  clearStage();setActions(true);$("under").hidden=false;
+  const f=F[c.fig]||{p:"papir",bg:"#ddd"};
+  const el=document.createElement("article");el.className="card";el.tabIndex=0;
+  el.setAttribute("aria-label",c.fig.trim()+": "+c.line);
+  el.innerHTML=`<div class="rings"><i></i><i></i><i></i></div>
+    <div class="portrait" style="background:${f.bg}">${props[f.p]}
+      <div class="choice l" id="chL">${c.nej}</div><div class="choice r" id="chR">${c.ja}</div></div>
+    <div class="body"><div class="who"><h2>${c.fig.trim()}</h2>${c.citat?'<span class="badge">citat</span>':''}</div><p class="line">${c.line}</p></div>`;
+  stage.appendChild(el);
+  $("lblL").textContent=c.nej;$("lblR").textContent=c.ja;
+  bindDrag(el,c);
+}
+function bindDrag(el,c){
+  let x0=null,dx=0,id=null;
+  const set=(x,anim)=>{el.classList.toggle("anim",!!anim);el.style.transform=`translateX(${x}px) rotate(${x/18}deg)`;
+    const side=x<-18?"l":x>18?"r":null;$("chL").style.opacity=side==="l"?Math.min(1,(-x-18)/50):0;$("chR").style.opacity=side==="r"?Math.min(1,(x-18)/50):0;
+    showDots(side==="l"?c.en:side==="r"?c.ej:null)};
+  el.addEventListener("pointerdown",e=>{x0=e.clientX;dx=0;id=e.pointerId;el.setPointerCapture(id);el.classList.remove("anim")});
+  el.addEventListener("pointermove",e=>{if(x0===null)return;dx=e.clientX-x0;set(dx,false)});
+  const up=()=>{if(x0===null)return;x0=null;
+    if(dx>80)choose(true,el);else if(dx<-80)choose(false,el);else set(0,true)};
+  el.addEventListener("pointerup",up);el.addEventListener("pointercancel",up);
+  el.addEventListener("keydown",e=>{if(e.key==="ArrowRight")choose(true,el);if(e.key==="ArrowLeft")choose(false,el)});
+  // Hover-preview fra knapper
+  const prev=(ja)=>()=>{if(ja){$("chR").style.opacity=1;showDots(c.ej)}else{$("chL").style.opacity=1;showDots(c.en)}};
+  const clr=()=>{$("chL").style.opacity=0;$("chR").style.opacity=0;showDots(null)};
+  $("btnR").onpointerenter=prev(true);$("btnL").onpointerenter=prev(false);$("btnR").onpointerleave=clr;$("btnL").onpointerleave=clr;
+  $("btnR").onclick=()=>choose(true,el);$("btnL").onclick=()=>choose(false,el);
+}
+let busy=false;
+function choose(ja,el){
+  if(busy||st.phase!=="play")return;busy=true;
+  const c=byId[st.cur];const e=ja?c.ej:c.en;
+  el.classList.add("anim");el.style.transform=`translateX(${ja?520:-520}px) rotate(${ja?24:-24}deg)`;el.style.opacity="0";
+  showDots(null);
+  for(let i=0;i<4;i++)st.bars[i]+=e[i];
+  st.hands+=e[4];st.count++;
+  renderBars();
+  const t=ja?c.tJa:c.tNej;if(t)setTimeout(()=>toast(t),200);
+  setTimeout(()=>{busy=false;resolve(c,ja)},340);
+}
+function resolve(c,ja){
+  // Specielle udgange
+  if(c.id==="A1-18"){if(ja)return actTwo();return ending("bolle")}
+  if(c.id==="A2-21"){if(!ja)return ending("udskudt");if(st.hands>=8500)return ending("sejr");st.forceNext="SP-03";return next()}
+  if(c.id==="SP-03")return ending("braendt");
+  // Bjælker
+  for(let i=0;i<4;i++){if(st.bars[i]<=0)return ending(i+"-lo");if(st.bars[i]>=100)return ending(i+"-hi")}
+  next();
+}
+
+// Påskeæg: tre tryk på bollen
+$("bunbtn").onclick=()=>{
+  if(st.phase!=="play"||st.goldUsed)return;
+  st.goldTaps++;const b=$("bunbtn");b.animate&&b.animate([{transform:"scale(1)"},{transform:"scale(1.25)"},{transform:"scale(1)"}],{duration:220});
+  if(st.goldTaps>=3){st.goldUsed=true;st.forceNext="SP-02";$("bunbtn").innerHTML=bun(true);toast("Noget gyldent er på vej ...")}
+};
+
+// Bevar spillet ved opdateringer
+const hot=window.claude&&window.claude.hot;
+if(hot&&hot.snapshot)hot.snapshot(()=>st);
+function boot(data){
+  if(data&&data.phase==="play"&&data.cur){st=data;renderBars();showCard(byId[st.cur])}
+  else startScreen();
+}
+if(hot&&hot.ready)hot.ready(boot);else boot(hot&&hot.data);
+})();
+</script>
+
+</body></html>
